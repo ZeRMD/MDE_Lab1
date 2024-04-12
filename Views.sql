@@ -11,11 +11,6 @@ ON i.ID_Instalacao = c.ID_Instalacao;
 select * from ver_tudo;
 
 #
-# 
-create or replace view ver_tudo as
-select * from ver_tudo;
-
-#
 # ver_faturas mostra para cada Pessoa todas as suas Faturas
 #
 create or replace view ver_faturas as
