@@ -1,6 +1,6 @@
 ################
 #
-# Grande parte do código que fazer estes requerimentos funcionar está na pasta "DML_procedures_functions_triggers"
+# Grande parte do código que faz estes requerimentos funcionar está na pasta "DML_procedures_functions_triggers"
 #
 ################
 
@@ -21,6 +21,8 @@ select * from cliente where NIF = 12121212;
 
 delete from cliente where NIF = 12121212;
 
+select * from cliente where NIF = 12121212;
+
 ################
 # RF2
 ################
@@ -29,12 +31,16 @@ call update_valor_dispositivo(1, 19);
 call update_valor_dispositivo(2, 12.00);
 call update_valor_dispositivo(3, 5);
 
+select * from dispositivos;
+
 ################
 # RF3
 ################
 
 call insert_automacao(1, '>', 20, 2,'Desligar');
-call insert_automacao(1, '<', 17, 2,'Desligar');
+call insert_automacao(1, '<', 17, 2,'Ligar');
+
+select * from automacao;
 
 call update_valor_dispositivo(1, 21);
 
@@ -52,7 +58,7 @@ select * from acao;
 # RF4
 ################
 
-SELECT cl.NIF, cl.Nome, cl.Numero_Telefone, cl.Tipo, cl.Morada, cl.Email FROM cliente cl
+SELECT i.ID_Instalacao, cl.NIF, cl.Nome, cl.Numero_Telefone, cl.Tipo, cl.Morada, cl.Email FROM cliente cl
 Join Instalacao i
 ON i.NIF_Cliente = cl.NIF
 WHERe i.Tipo = 'Apartamento';
@@ -72,18 +78,16 @@ WHERe Tipo_Servico = 'Lowcost';
 # RF6
 ################
 
-SELECT d.Tipo ,d.Referencia, d.Modelo, d.Estado, d.Valor_Lido, d.Data_Instalacao from dispositivos d
+SELECT d.Tipo ,d.Referencia, d.Modelo, d.Estado, d.Valor_Leitura, d.Data_Instalacao from dispositivos d
 Join Instalacao i
 ON i.ID_Instalacao = d.ID_Instalacao
-WHERE d.Data_Instalacao > '2024-01-25' and d.Data_Instalacao < '2024-01-29'
-Group by d.Data_Instalacao 
+WHERE d.Data_Instalacao > '2024-01-25' and d.Data_Instalacao < '2024-01-29' and i.ID_Instalacao = 1
 order BY Data_Instalacao  DESC;
 
-SELECT d.Tipo ,d.Referencia, d.Modelo, d.Estado, d.Valor_Lido, d.Data_Instalacao from dispositivos d
+SELECT d.Tipo ,d.Referencia, d.Modelo, d.Estado, d.Valor_Leitura, d.Data_Ultima_Leitura, d.Data_Instalacao from dispositivos d
 Join Instalacao i
 ON i.ID_Instalacao = d.ID_Instalacao
-WHERE d.Data_Instalacao > '2024-01-25' and d.Data_Instalacao < '2024-05-25'
-Group by d.Data_Instalacao 
+WHERE d.Data_Instalacao > '2024-01-25' and d.Data_Instalacao < '2024-05-25' and i.ID_Instalacao = 1
 order BY Data_Instalacao  DESC;
 
 ################
@@ -97,9 +101,7 @@ JOIN Cliente cl
 ON cl.NIF = i.NIF_Cliente
 Join fatura f
 ON f.ID_Contrato = c.ID_Contrato
-WHERE f.Estado_Fatura = 'Paga' and cl.Nome = 'Raúl'
-Group by custo 
-order BY custo DESC;
+WHERE f.Estado_Fatura = 'Paga' and cl.Nome = 'Raúl';
 
 ################
 # RF8
@@ -110,19 +112,25 @@ join dispositivos d
 on i.ID_Instalacao = d.ID_Instalacao
 join automacao a
 on a.Referencia_Dispositivo_Cond = d.Referencia
-where a.Data_Implementacao > '2024-01-25' and d.Data_Implementacao < '2024-01-29';
+where a.Data_Implementacao > '2024-01-25' and a.Data_Implementacao < '2024-01-29';
 
 select i.ID_Instalacao, i.NIF_Cliente, i.Morada, i.Numero_Dispositivos, i.Tipo from instalacao i
 join dispositivos d
 on i.ID_Instalacao = d.ID_Instalacao
 join automacao a
 on a.Referencia_Dispositivo_Cond = d.Referencia
-where a.Data_Implementacao > '2024-01-25' and d.Data_Implementacao < '2024-06-29';
+where a.Data_Implementacao > '2024-01-25' and a.Data_Implementacao < '2024-06-29';
 
 ################
 # RF9
 ################
 
+# Cada Instalacao tem que ter um mediador associado.
+# Criámos uma tabela mediador e colocámos uma foreign key na tabela instalação com o ID do mediador
+
+select c.ID_Contrato, m.Nome_Mediador from contratos c
+join mediador m
+where c.ID_Mediador = m.ID_Mediador;
 
 ################
 # RF10

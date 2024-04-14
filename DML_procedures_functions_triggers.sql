@@ -34,11 +34,11 @@ DELIMITER ;
 ###################
 
 DELIMITER $$$
-Create procedure insert_contrato(IN ID_Instalacao int(11),IN Tipo_Servico varchar(45), IN Custo decimal(10,2), IN Duracao int(11))
+Create procedure insert_contrato(IN ID_Instalacao int(11),IN Tipo_Servico varchar(45), IN ID_Mediador int(11), IN Custo decimal(10,2), IN Duracao int(11))
 Begin
 	
-	insert into contratos (ID_Instalacao, Tipo_Servico, Data_Inicio, Custo_Mensal, Duracao)
-	values(ID_Instalacao, Tipo_Servico, now(), Custo, Duracao);
+	insert into contratos (ID_Instalacao, Tipo_Servico, ID_Mediador, Data_Inicio, Custo_Mensal, Duracao)
+	values(ID_Instalacao, Tipo_Servico, ID_Mediador, now(), Custo, Duracao);
 
 	select c.ID_Contrato from contratos c
     where c.ID_Instalacao = ID_Instalacao;

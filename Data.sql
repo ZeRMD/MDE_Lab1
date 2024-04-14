@@ -6,6 +6,10 @@ insert into servico (Tipo_Servico, Numero_Max_Dispositivos) values( 'Lowcost' , 
 insert into servico (Tipo_Servico, Numero_Max_Dispositivos) values( 'Normal' , 4);
 insert into servico (Tipo_Servico) values( 'Professional' );
 
+insert into mediador (Nome_Mediador) values ('João');
+insert into mediador (Nome_Mediador) values ('Nuno');
+insert into mediador (Nome_Mediador) values ('Manuel');
+
 call insert_Client('Raúl', 12345, 932444111, 'Empresa', 'Aqui', 'ra@gmail.com');
 call insert_Client('Nando', 54321, 932444121, 'Empresa', 'Aquilo', 'na@gmail.com');
 call insert_Client('Bento', 13245, 932444131, 'Individuo', 'Aquilho', 'be@gmail.com');
@@ -16,11 +20,11 @@ call insert_instalacao('54321','Onde ela mora', 'Loja');
 
 call insert_instalacao('13245', 'Av Java', 'Loja');
 
-call insert_contrato(1,'Lowcost', 1000, 4);
-call insert_contrato(2,'Professional', 2000, 5);
-call insert_contrato(3,'Lowcost', 3000, 6);
+call insert_contrato(1,'Lowcost', 1, 1000, 4);
+call insert_contrato(2,'Professional', 2, 2000, 5);
+call insert_contrato(3,'Lowcost', 1, 3000, 6);
 
-call insert_contrato(4, 'Professional', 150, 1);
+call insert_contrato(4, 'Professional', 3, 150, 1);
 
 call insert_dispositivo(1, 1, 'Termometro', 'dobomedomelhor', false);
 call insert_dispositivo(2, 1, 'Aquecedor', 'dobomedomelhor', false);
