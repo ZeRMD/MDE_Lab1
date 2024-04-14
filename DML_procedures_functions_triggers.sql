@@ -64,13 +64,16 @@ BEGIN
 	declare numero_dispositivos_max_da_instalacao int;
 	declare numero_dispositivos_da_instalacao int;
 
+	# ir buscar o numero de dispositivos e o numero max de dispositivos
 	SELECT Numero_Dispositivos into numero_dispositivos_da_instalacao FROM Instalacao_dispositivos_dispositivos_max WHERE ID_Instalacao = ID_Insta;
     SELECT Numero_MAX_Dispositivos into numero_dispositivos_max_da_instalacao FROM Instalacao_dispositivos_dispositivos_max WHERE ID_Instalacao = ID_Insta; 
 
+	# se nao houver limite deixa meter dispositivo
 	if numero_dispositivos_max_da_instalacao = null then 
 		return 1;
 	end if;
     
+    # se nao conseguir meter mais dispositivos da 0
     IF numero_dispositivos_da_instalacao = numero_dispositivos_max_da_instalacao THEN
 		return 0;
     else 
@@ -85,8 +88,10 @@ Create procedure incrementar_numero_dispositivos(IN ID_Instalaca int(11), IN inc
 Begin
 	declare numero_dispositivos_da_instalacao int;
     
+    # ir buscar o numero de dispositivos para incrementar/decrementar
     SELECT Numero_Dispositivos into numero_dispositivos_da_instalacao FROM Instalacao_dispositivos_dispositivos_max WHERE ID_Instalacao = ID_Instalaca;
     
+    # se 1 incrementar o numero se 0 decrementar o numero
     if incrementar_decrementar = 1 then    
 		update instalacao
 		set Numero_Dispositivos = numero_dispositivos_da_instalacao + 1
@@ -103,10 +108,12 @@ DELIMITER ;
 DELIMITER $$$
 Create procedure insert_dispositivo(IN Referencia int(11), IN ID_Instalacao int(11), IN Tipo varchar(45), IN Modelo varchar(45), IN Estado tinyint(4))
 Begin
-    
+    # se nao posso adicionar da erro
     if (Posso_Add_dispositivo(ID_Instalacao) = 0) then 
 		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'A instalação já tem o número máximo de dispositivos para o tipo de serviço';
     else
+    
+    # se posso adiciono e atualizo o numero de dispositivos da instalacao
     insert into dispositivos (Referencia, ID_Instalacao, Tipo, Modelo, Data_Instalacao, Estado)
 	values(Referencia,ID_Instalacao , Tipo, Modelo, now(), Estado);
     
@@ -119,14 +126,30 @@ Delimiter ;
 DELIMITER $$$
 Create procedure delete_dispositivo(IN INReferencia int(11))
 Begin
-
+	# retirar o dispositivo
     delete from dispositivos
     where Referencia = INReferencia;
     
+    # dar update ao numero de dispositivos
     call incrementar_numero_dispositivos((select ID_instalacao from dispositivos where Referencia = INReferencia), 0);
     
 end; $$$
 Delimiter ;
+
+###################
+#Atualizar valor dispositivo
+###################
+
+DELIMITER $$$
+Create procedure update_valor_dispositivo(IN INReferencia int(11), IN Valor_Novo decimal(10,2))
+Begin
+	update dispositivos
+	set Valor_Leitura = Valor_Novo
+	where Referencia = INReferencia;
+    
+end; $$$
+Delimiter ;
+
 
 ###################
 #Inserir Faturas
@@ -137,8 +160,10 @@ Create procedure insert_fatura(IN INID_Contrato int(11))
 Begin
     declare custo decimal(10,2);
     
+    # ir buscar o custo ao contrato
     select Custo_Mensal into custo from contratos where ID_Contrato = INID_Contrato;
     
+    # criar a fatura
     insert into fatura (ID_Contrato, Data_Emissao, Custo_Fatura, Estado_Fatura)
 	values(INID_Contrato, now(), custo, 'Por Pagar');
     
@@ -165,7 +190,7 @@ Begin
         if nao_ha_mais_contratos = 1 then
 			leave Loop_Pelos_Contratos;
 		end if;
-        
+        # ir a todos os contratos e fazer a fatura para cada um
         call insert_fatura(INID_Contrato);
 
     end loop Loop_Pelos_Contratos;    
@@ -188,10 +213,11 @@ DO call faturas_automaticas();
 DELIMITER $$$
 Create procedure insert_automacao(IN Dispositivo_Cond int(11), IN INRelacao varchar(45), IN Referencia decimal(10,2), IN Dispositivo_Acao int(11), IN INAcao varchar(45))
 Begin
-    
+    # se os 2 dispositivos nao pertencerem a mesma instalacao da erro
     if ((select ID_Instalacao from dispositivos where Referencia = Dispositivo_Cond) != (select ID_Instalacao from dispositivos where Referencia = Dispositivo_Acao)) then
 		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Ambos os dispositivos têm de estar na mesma Instalação';
     else
+		# inserir
 		insert into automacao (Referencia_Dispositivo_Cond, Referencia_Dispositivo_Acao, Relacao, Valor_Referencia, Acao, Data_Implementacao)
 		values(Dispositivo_Cond, Dispositivo_Acao, INRelacao, Referencia, INAcao, now());
 	end if;
@@ -206,23 +232,13 @@ create or replace view ver_automacao as
 select Referencia_Dispositivo_Cond, Referencia_Dispositivo_Acao, Relacao, Valor_Referencia, Acao from automacao;
 
 DELIMITER $$$
-CREATE FUNCTION Numero_Automacao_Com_Disp (Dispositivo_Cond int(11))
-RETURNS INT
-BEGIN
-	declare Numero_De_Automacoes_com_Disp int;
-    
-    select count(Referencia_Dispositivo_Cond) into Numero_De_Automacoes_com_Disp from automacao
-    where Referencia_Dispositivo_Cond = Dispositivo_Cond;
-    
-    return Numero_De_Automacoes_com_Disp;
-    
-END;$$$
-DELIMITER ;
-
-DELIMITER $$$
 Create procedure trata_update_disp_automacao(IN Valor_Leitura_Novo decimal(10,2), IN Ref_Disp_Acao INT(11), IN Relacao VARCHAR(45), IN Valor_Ref decimal(10,2), IN INAcao VARCHAR(45))
 Begin
-	if Relacao = '<' then  
+
+	# ver qual a relacao e fazer a comparacao entre o novo valor e a referencia
+    # se a comparacao for verdadeira inserir uma nova acao com a referencia do dispositivo, data e acao a fazer
+	
+	if Relacao = '<' then 
 		if (Valor_Leitura_Novo < Valor_Ref) then
 				
 				insert into acao(Referencia, Acao, Data_Acao) 
@@ -283,12 +299,15 @@ Begin
     
     DECLARE Valor_Leitura_Novo decimal(10,2);
     
+    # procurar todas as automacoes que têm o dispositivo cujo valor foi updated
 	declare Automacao_Atual cursor for 
 	select * from ver_automacao where Referencia_Dispositivo_Cond = new.Referencia;
 	
 	declare continue handler for not found set nao_ha_mais_Automacoes = 1;
 	
     set Valor_Leitura_Novo = new.Valor_Leitura;
+    
+    # Atualizar a data da ultima leitura
     set new.Data_Ultima_Leitura = now();
     
     open Automacao_Atual;
@@ -300,6 +319,7 @@ Begin
 			leave Loop_Pelas_Automacoes;
 		end if;
         
+        # para cada automacao verificar se a relacao foi verificada
         call trata_update_disp_automacao(Valor_Leitura_Novo, Ref_Disp_Acao, Relacao, Valor_Ref, Acao);
 
     end loop Loop_Pelas_Automacoes;    
@@ -323,11 +343,16 @@ BEGIN
 END;$$$
 DELIMITER ;
 
-####################
-#Introducao de dados
-####################
+###################
+#Pagar fatura
+###################
+DELIMITER $$$
+Create procedure pagar_fatura(IN Num_Fatura int(11))
+Begin
 
-insert into servico (Tipo_Servico, Numero_Max_Dispositivos) values( 'Lowcost' , 2);
-insert into servico (Tipo_Servico, Numero_Max_Dispositivos) values( 'Normal' , 4);
-insert into servico (Tipo_Servico) values( 'Professional' );
+    update fatura
+	set Estado_Fatura= 'Paga'
+	where Numero_Fatura = Num_Fatura;
 
+end; $$$
+Delimiter ;

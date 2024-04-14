@@ -1,4 +1,4 @@
-SELECT avg(c.custo), cl.Nome from Contratos c
+SELECT avg(f.Custo_Fatura), cl.Nome from Contratos c
 Join Instalacao i
 ON i.ID_Instalacao = c.ID_Instalacao
 JOIN Cliente cl
@@ -9,7 +9,7 @@ WHERE f.Estado_Fatura = 'Paga' and cl.Nome = 'Nome do cliente'
 Group by custo 
 order BY custo DESC;
 
-SELECT avg(c.custo), cl.Nome from Contratos c
+SELECT avg(f.Custo_Fatura), cl.Nome from Contratos c
 Join Instalacao i
 ON i.ID_Instalacao = c.ID_Instalacao
 JOIN Cliente cl

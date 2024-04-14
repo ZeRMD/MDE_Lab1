@@ -18,15 +18,20 @@ call insert_contrato(1,'Lowcost', 1000, 4);
 call insert_contrato(2,'Professional', 2000, 5);
 call insert_contrato(3,'Lowcost', 3000, 6);
 
-call insert_dispositivo(6, 2, 'Aspirador', '25bemgusti',false);
-call insert_dispositivo(4, 2, 'Aspirador', '25bemgusti',false);
-call insert_dispositivo(11, 2, 'Aspirador', '25bemgusti',false);
+call insert_dispositivo(1, 1, 'Termometro', '25bemgusti',false);
+call insert_dispositivo(2, 1, 'Aquecedor', '25bemgusti',false);
 
-select * from dispositivos;
+call insert_automacao(1, 2, '>' ,20,'Desligar');
+call insert_automacao(1, 2, '<' ,18,'Ligar');
 
-insert into fatura (Numero_Fatura, ID_contrato, Data_Emissao)
-values (12345, 1, '2024-01-25');
+update dispositivos
+set Valor_Leitura = 19.00
+where Referencia = 1;
+
+call insert_fatura(1);
 
 update fatura
 set Estado_Fatura= 'Paga'
-where Numero_Fatura = 12345;
+where Numero_Fatura = 2;
+
+select * from fatura;
