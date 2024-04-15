@@ -213,13 +213,25 @@ DO call faturas_automaticas();
 DELIMITER $$$
 Create procedure insert_automacao(IN Dispositivo_Cond int(11), IN INRelacao varchar(45), IN Referencia decimal(10,2), IN Dispositivo_Acao int(11), IN INAcao varchar(45))
 Begin
-    # se os 2 dispositivos nao pertencerem a mesma instalacao da erro
-    if ((select ID_Instalacao from dispositivos where Referencia = Dispositivo_Cond) != (select ID_Instalacao from dispositivos where Referencia = Dispositivo_Acao)) then
+    # inserir
+		insert into automacao (Referencia_Dispositivo_Cond, Referencia_Dispositivo_Acao, Relacao, Valor_Referencia, Acao)
+		values(Dispositivo_Cond, Dispositivo_Acao, INRelacao, Referencia, INAcao);
+end; $$$
+Delimiter ;
+
+Delimiter $$$ 
+create trigger insert_automacao_trigger
+before insert
+On automacao for each row
+
+begin
+	 # se os 2 dispositivos nao pertencerem a mesma instalacao da erro
+	if ((select ID_Instalacao from dispositivos where Referencia = new.Referencia_Dispositivo_Cond) != (select ID_Instalacao from dispositivos where Referencia = new.Referencia_Dispositivo_Acao)) then
 		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Ambos os dispositivos têm de estar na mesma Instalação';
-    else
-		# inserir
-		insert into automacao (Referencia_Dispositivo_Cond, Referencia_Dispositivo_Acao, Relacao, Valor_Referencia, Acao, Data_Implementacao)
-		values(Dispositivo_Cond, Dispositivo_Acao, INRelacao, Referencia, INAcao, now());
+	else 
+		update automacao
+        set data_Implementacao = now()
+        where ID_Automacao = new.ID_Automacao;
 	end if;
 end; $$$
 Delimiter ;
